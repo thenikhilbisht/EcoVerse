@@ -1,0 +1,10 @@
+# This file has been created to ignore large local directories
+# and avoid uploading them during gcloud deployments.
+.gcloudignore
+.git
+.gitignore
+
+# Node modules and build output
+node_modules/
+.next/
+out/

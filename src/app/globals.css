@@ -1,0 +1,701 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   ROOT VARIABLES
+   ============================================ */
+:root {
+  --eco-black: #050a05;
+  --eco-dark: #080f08;
+  --eco-surface: #0d1a0d;
+  --eco-card: #111f11;
+  --eco-border: rgba(0, 255, 136, 0.15);
+  --neon-green: #00ff88;
+  --neon-blue: #00d4ff;
+  --neon-yellow: #ffd700;
+  --text-primary: #e8ffe8;
+  --text-secondary: #88aa88;
+  --text-muted: #557755;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--eco-black);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ============================================
+   SCROLLBAR STYLES
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--eco-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neon-green);
+  border-radius: 3px;
+  opacity: 0.5;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  opacity: 1;
+}
+
+/* ============================================
+   GLASS MORPHISM UTILITIES
+   ============================================ */
+@layer components {
+  .glass {
+    background: rgba(13, 26, 13, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 255, 136, 0.12);
+  }
+
+  .glass-dark {
+    background: rgba(5, 10, 5, 0.8);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(0, 255, 136, 0.08);
+  }
+
+  .glass-card {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.05) 0%, rgba(0, 212, 255, 0.03) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 255, 136, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* ============================================
+     NEON EFFECTS
+     ============================================ */
+  .neon-text {
+    color: var(--neon-green);
+    text-shadow: 0 0 20px rgba(0, 255, 136, 0.8), 0 0 40px rgba(0, 255, 136, 0.4);
+  }
+
+  .neon-text-blue {
+    color: var(--neon-blue);
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 0 0 40px rgba(0, 212, 255, 0.4);
+  }
+
+  .neon-border {
+    border: 1px solid var(--neon-green);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3), inset 0 0 15px rgba(0, 255, 136, 0.05);
+  }
+
+  .neon-border-hover {
+    transition: all 0.3s ease;
+  }
+
+  .neon-border-hover:hover {
+    border-color: var(--neon-green);
+    box-shadow: 0 0 25px rgba(0, 255, 136, 0.4), inset 0 0 25px rgba(0, 255, 136, 0.05);
+  }
+
+  /* ============================================
+     BUTTON STYLES
+     ============================================ */
+  .btn-primary {
+    background: linear-gradient(135deg, #00ff88, #00cc6a);
+    color: #050a05;
+    font-weight: 700;
+    padding: 0.75rem 2rem;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 35px rgba(0, 255, 136, 0.6), 0 10px 30px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #33ff99, #00ff88);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--neon-green);
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(0, 255, 136, 0.4);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: var(--neon-green);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .btn-ghost {
+    background: rgba(0, 255, 136, 0.08);
+    color: var(--neon-green);
+    font-weight: 500;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+
+  .btn-ghost:hover {
+    background: rgba(0, 255, 136, 0.15);
+    border-color: rgba(0, 255, 136, 0.5);
+  }
+
+  /* ============================================
+     BADGE & TAG STYLES
+     ============================================ */
+  .badge-green {
+    background: rgba(0, 255, 136, 0.15);
+    color: var(--neon-green);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .badge-blue {
+    background: rgba(0, 212, 255, 0.15);
+    color: var(--neon-blue);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .badge-gold {
+    background: rgba(255, 215, 0, 0.15);
+    color: var(--neon-yellow);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ============================================
+     SECTION STYLES
+     ============================================ */
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .section-subtitle {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 600px;
+  }
+
+  /* ============================================
+     GRADIENT BACKGROUNDS
+     ============================================ */
+  .bg-eco-mesh {
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(0, 255, 136, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(0, 255, 136, 0.06) 0%, transparent 50%),
+      var(--eco-black);
+  }
+
+  .bg-card {
+    background: rgba(17, 31, 17, 0.8);
+  }
+
+  /* ============================================
+     PROGRESS BAR
+     ============================================ */
+  .progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+    border-radius: 100px;
+    transition: width 1s ease-out;
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--neon-green);
+  }
+
+  /* ============================================
+     PARTICLE EFFECTS
+     ============================================ */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--neon-green);
+    opacity: 0.4;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  /* ============================================
+     STAT CARD
+     ============================================ */
+  .stat-card {
+    padding: 1.5rem;
+    border-radius: 1rem;
+    background: rgba(17, 31, 17, 0.8);
+    border: 1px solid rgba(0, 255, 136, 0.12);
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    border-color: rgba(0, 255, 136, 0.3);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+    transform: translateY(-4px);
+  }
+
+  /* ============================================
+     NAV LINK
+     ============================================ */
+  .nav-link {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    position: relative;
+    padding: 0.25rem 0;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--neon-green);
+    box-shadow: 0 0 6px var(--neon-green);
+    transition: width 0.3s ease;
+    border-radius: 2px;
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    color: var(--neon-green);
+  }
+
+  .nav-link:hover::after,
+  .nav-link.active::after {
+    width: 100%;
+  }
+
+  /* ============================================
+     ROTATING RING
+     ============================================ */
+  .rotating-ring {
+    animation: spin 20s linear infinite;
+  }
+
+  /* ============================================
+     SHIMMER EFFECT
+     ============================================ */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(0, 255, 136, 0.08),
+      transparent
+    );
+    animation: shimmer 3s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 200%; }
+  }
+
+  /* ============================================
+     LEADERBOARD RANK STYLES
+     ============================================ */
+  .rank-1 { color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.6); }
+  .rank-2 { color: #c0c0c0; text-shadow: 0 0 10px rgba(192, 192, 192, 0.4); }
+  .rank-3 { color: #cd7f32; text-shadow: 0 0 10px rgba(205, 127, 50, 0.4); }
+
+  /* ============================================
+     CIRCULAR PROGRESS
+     ============================================ */
+  .circular-progress {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ============================================
+     PULSE DOT
+     ============================================ */
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--neon-green);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7);
+    animation: pulseDot 2s infinite;
+  }
+
+  @keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+  }
+
+  /* ============================================
+     CHALLENGE CARD
+     ============================================ */
+  .challenge-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .challenge-card:hover {
+    transform: translateY(-6px);
+  }
+
+  /* ============================================
+     MOBILE MENU
+     ============================================ */
+  .mobile-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    background: rgba(5, 10, 5, 0.97);
+    backdrop-filter: blur(24px);
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(2deg); }
+  66% { transform: translateY(-8px) rotate(-2deg); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseNeon {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
+  50% { box-shadow: 0 0 40px rgba(0, 255, 136, 0.8), 0 0 80px rgba(0, 255, 136, 0.3); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes counter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes orbits {
+  0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* ============================================
+   UTILITY OVERRIDES
+   ============================================ */
+.font-display {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-warm {
+  background: linear-gradient(135deg, #00ff88 0%, #ffd700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   RESPONSIVE HELPERS
+   ============================================ */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: clamp(1.75rem, 6vw, 2.5rem);
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* ============================================
+   SELECTION COLOR
+   ============================================ */
+::selection {
+  background: rgba(0, 255, 136, 0.3);
+  color: #e8ffe8;
+}
+
+/* ============================================
+   FOCUS STYLES
+   ============================================ */
+*:focus-visible {
+  outline: 2px solid var(--neon-green);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================
+   CHART OVERRIDES
+   ============================================ */
+.recharts-tooltip-wrapper {
+  background: rgba(13, 26, 13, 0.95) !important;
+  border: 1px solid rgba(0, 255, 136, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+/* ============================================
+   GRID PATTERN
+   ============================================ */
+.grid-pattern {
+  background-image: 
+    linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ============================================
+   INPUT STYLES  
+   ============================================ */
+.eco-input {
+  background: rgba(13, 26, 13, 0.8);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 0.75rem;
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  outline: none;
+  width: 100%;
+}
+
+.eco-input:focus {
+  border-color: var(--neon-green);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+}
+
+.eco-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ============================================
+   EARTH GLOBE ANIMATION
+   ============================================ */
+.earth-glow {
+  box-shadow: 
+    0 0 40px rgba(0, 255, 136, 0.3),
+    0 0 80px rgba(0, 255, 136, 0.15),
+    0 0 120px rgba(0, 212, 255, 0.1),
+    inset 0 0 40px rgba(0, 255, 136, 0.1);
+}
+
+/* ============================================
+   TAB STYLES
+   ============================================ */
+.tab-active {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 212, 255, 0.1));
+  color: var(--neon-green);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.tab-inactive {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+
+.tab-inactive:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================
+   NO SCROLLBAR UTILITY
+   ============================================ */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   HERO GRADIENT BACKGROUND
+   ============================================ */
+.bg-hero-gradient {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(0, 255, 136, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 100% 100%, rgba(0, 212, 255, 0.06) 0%, transparent 50%);
+}
+
+/* ============================================
+   ECO BLACK BACKGROUND
+   ============================================ */
+.bg-eco-black {
+  background-color: var(--eco-black);
+}
+
+/* ============================================
+   TEXTAREA OVERRIDE
+   ============================================ */
+textarea.eco-input {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* ============================================
+   SKIP TO CONTENT (Accessibility)
+   ============================================ */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-to-content:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  padding: 0.75rem 1.5rem;
+  background: var(--neon-green);
+  color: var(--eco-black);
+  font-weight: 700;
+  z-index: 9999;
+  outline: none;
+  border-radius: 0 0 0.5rem 0;
+}
+
+/* ============================================
+   ADMIN TABLE
+   ============================================ */
+table {
+  border-collapse: collapse;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .glass, .glass-dark, .glass-card {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    backdrop-filter: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
