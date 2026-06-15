@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Car, Zap, Droplets, Utensils, ShoppingBag, Wifi, ArrowRight, TrendingDown, BarChart3 } from "lucide-react";
 import {
   RadialBarChart, RadialBar, ResponsiveContainer, Tooltip
 } from "recharts";
+import {
+  calculateCarbon,
+  computeScore,
+  getTips,
+  DEFAULT_INPUTS,
+  GLOBAL_AVG_YEARLY_KG,
+} from "@/lib/carbonUtils";
 
 const categories = [
   { id: "transport", label: "Transport", icon: Car, unit: "km/week", max: 500, color: "#00ff88", desc: "Car, flights, public transit" },
@@ -16,41 +23,24 @@ const categories = [
   { id: "digital", label: "Digital", icon: Wifi, unit: "hours/day", max: 24, color: "#a78bfa", desc: "Streaming & devices" },
 ];
 
-function calculateCarbon(inputs: Record<string, number>): number {
-  const { transport = 100, electricity = 250, water = 150, food = 7, shopping = 5, digital = 6 } = inputs;
-  return (
-    transport * 0.21 +
-    electricity * 0.82 +
-    water * 0.002 * 30 +
-    food * 3.5 * 4 +
-    shopping * 15 +
-    digital * 0.036 * 30
-  );
-}
-
 export default function CarbonCalculator() {
-  const [inputs, setInputs] = useState<Record<string, number>>({
-    transport: 100, electricity: 250, water: 150, food: 7, shopping: 5, digital: 6,
-  });
+  const [inputs, setInputs] = useState<Record<string, number>>({ ...DEFAULT_INPUTS });
   const [calculated, setCalculated] = useState(false);
 
-  const monthlyCarbon = calculateCarbon(inputs);
-  const yearlyCarbon = monthlyCarbon * 12;
-  const globalAvg = 4000; // kg CO2/year
-  const score = Math.max(0, 100 - Math.round((yearlyCarbon / 20000) * 100));
+  const globalAvg = GLOBAL_AVG_YEARLY_KG;
+  const monthlyCarbon = useMemo(() => calculateCarbon(inputs), [inputs]);
+  const yearlyCarbon = useMemo(() => monthlyCarbon * 12, [monthlyCarbon]);
+  const score = useMemo(() => computeScore(yearlyCarbon), [yearlyCarbon]);
 
-  const chartData = [
-    { name: "Your Score", value: score, fill: score > 60 ? "#00ff88" : score > 30 ? "#ffd700" : "#f97316" },
-    { name: "Global Avg", value: 45, fill: "rgba(255,255,255,0.1)" },
-  ];
+  const chartData = useMemo(
+    () => [
+      { name: "Your Score", value: score, fill: score > 60 ? "#00ff88" : score > 30 ? "#ffd700" : "#f97316" },
+      { name: "Global Avg", value: 45, fill: "rgba(255,255,255,0.1)" },
+    ],
+    [score],
+  );
 
-  const tips = [
-    yearlyCarbon > 6000 && "Switch to public transport — saves ~1.5 tons CO₂/year",
-    inputs.food > 10 && "Reduce meat intake by 3 meals/week — saves 0.5 ton CO₂/year",
-    inputs.electricity > 400 && "Switch to renewable energy — could cut 70% of electricity emissions",
-    inputs.shopping > 8 && "Buy secondhand — saves ~500kg CO₂ per item avoided",
-    "Plant 10 trees to offset your remaining footprint",
-  ].filter(Boolean).slice(0, 3);
+  const tips = useMemo(() => getTips(inputs, yearlyCarbon), [inputs, yearlyCarbon]);
 
   return (
     <section id="calculator" className="py-20 relative">
@@ -90,7 +80,7 @@ export default function CarbonCalculator() {
                       <cat.icon className="w-4 h-4" style={{ color: cat.color }} />
                     </div>
                     <div>
-                      <span className="text-sm font-medium">{cat.label}</span>
+                      <label htmlFor={`slider-${cat.id}`} className="text-sm font-medium">{cat.label}</label>
                       <span className="text-[#557755] text-xs ml-2">{cat.desc}</span>
                     </div>
                   </div>
@@ -99,6 +89,7 @@ export default function CarbonCalculator() {
                   </span>
                 </div>
                 <input
+                  id={`slider-${cat.id}`}
                   type="range"
                   min={0}
                   max={cat.max}
@@ -109,7 +100,7 @@ export default function CarbonCalculator() {
                     background: `linear-gradient(to right, ${cat.color} ${(inputs[cat.id] / cat.max) * 100}%, rgba(255,255,255,0.1) 0%)`,
                     accentColor: cat.color,
                   }}
-                  aria-label={`${cat.label} slider`}
+                  aria-valuetext={`${inputs[cat.id]} ${cat.unit}`}
                 />
                 <div className="flex justify-between text-[#557755] text-xs mt-1">
                   <span>0</span><span>{cat.unit}</span><span>{cat.max}</span>
@@ -134,22 +125,41 @@ export default function CarbonCalculator() {
             viewport={{ once: true }}
             className="space-y-5"
           >
+            {!calculated ? (
+              <div className="glass-card rounded-2xl p-10 text-center flex flex-col items-center justify-center min-h-[320px]">
+                <BarChart3 className="w-10 h-10 text-[#00ff88] mb-4" aria-hidden="true" />
+                <h3 className="font-display font-semibold mb-2">See Your Carbon Score</h3>
+                <p className="text-[#557755] text-sm max-w-xs">
+                  Adjust your lifestyle data, then click{" "}
+                  <span className="text-[#00ff88]">Calculate My Carbon Score</span> to reveal your
+                  personalized footprint analysis.
+                </p>
+              </div>
+            ) : (
+              <>
             {/* Score */}
             <div className="glass-card rounded-2xl p-6">
               <h3 className="font-display font-semibold mb-4">Carbon Score</h3>
               <div className="flex items-center gap-6">
-                <div className="w-32 h-32">
+                <div
+                  className="w-32 h-32"
+                  role="progressbar"
+                  aria-label="Carbon score out of 100"
+                  aria-valuenow={score}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
                   <ResponsiveContainer width="100%" height="100%">
                     <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="100%" data={chartData} startAngle={90} endAngle={-270}>
                       <RadialBar dataKey="value" cornerRadius={10} />
                     </RadialBarChart>
                   </ResponsiveContainer>
                 </div>
-                <div>
+                <motion.div key={score} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", damping: 12 }}>
                   <div className="text-5xl font-display font-bold text-gradient">{score}</div>
                   <div className="text-[#557755] text-sm">out of 100</div>
                   <div className="mt-2 badge-green">{score > 70 ? "Eco Hero 🌿" : score > 40 ? "Improving 📈" : "Needs Work ⚡"}</div>
-                </div>
+                </motion.div>
               </div>
             </div>
 
@@ -192,6 +202,8 @@ export default function CarbonCalculator() {
                 ))}
               </div>
             </div>
+              </>
+            )}
           </motion.div>
         </div>
       </div>

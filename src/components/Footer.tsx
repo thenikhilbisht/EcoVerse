@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Leaf, Github, Twitter, Linkedin, Instagram, Mail, MapPin, Zap } from "lucide-react";
-import { motion } from "framer-motion";
+import { isValidEmail } from "@/lib/utils";
 
 const footerLinks = {
   Platform: [
@@ -39,6 +40,19 @@ const socialLinks = [
 ];
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidEmail(email)) {
+      setStatus("error");
+      return;
+    }
+    setStatus("success");
+    setEmail("");
+  };
+
   return (
     <footer className="relative mt-20 border-t border-[rgba(0,255,136,0.1)]">
       {/* Background */}
@@ -86,9 +100,10 @@ export default function Footer() {
                   key={social.label}
                   href={social.href}
                   aria-label={social.label}
+                  rel="noopener noreferrer"
                   className="w-9 h-9 glass rounded-lg flex items-center justify-center text-[#557755] hover:text-[#00ff88] hover:border-[rgba(0,255,136,0.3)] transition-all duration-200"
                 >
-                  <social.icon className="w-4 h-4" />
+                  <social.icon className="w-4 h-4" aria-hidden="true" />
                 </a>
               ))}
             </div>
@@ -123,15 +138,29 @@ export default function Footer() {
               </h3>
               <p className="text-[#557755] text-sm">Weekly eco insights, challenge updates & community highlights.</p>
             </div>
-            <div className="flex gap-3 w-full md:w-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="eco-input flex-1 md:w-64"
-                aria-label="Email for newsletter"
-              />
-              <button className="btn-primary whitespace-nowrap">Subscribe</button>
-            </div>
+            <form className="flex flex-col gap-1 w-full md:w-auto" onSubmit={handleSubscribe} noValidate>
+              <div className="flex gap-3 w-full md:w-auto">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="eco-input flex-1 md:w-64"
+                  aria-label="Email for newsletter"
+                  aria-invalid={status === "error"}
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (status !== "idle") setStatus("idle");
+                  }}
+                />
+                <button type="submit" className="btn-primary whitespace-nowrap">Subscribe</button>
+              </div>
+              {status === "error" && (
+                <span className="text-xs text-[#f97316]" role="alert">Please enter a valid email address.</span>
+              )}
+              {status === "success" && (
+                <span className="text-xs text-[#00ff88]" role="status">Thanks for subscribing! 🌱</span>
+              )}
+            </form>
           </div>
         </div>
 

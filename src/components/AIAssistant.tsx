@@ -3,44 +3,25 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, Send, X, Minimize2, Leaf, Sparkles } from "lucide-react";
+import {
+  getResponse,
+  sanitizeMessage,
+  registerMessage,
+  MAX_MESSAGE_LENGTH,
+} from "@/lib/aiAssistantUtils";
 
 type Message = { role: "user" | "ai"; text: string; };
-
-const ecoResponses: Record<string, string> = {
-  default: "Great question! I'm EcoBot, your AI sustainability guide. Ask me about carbon reduction, eco challenges, or climate tips! 🌱",
-  hello: "Hello, Eco Warrior! 👋 I'm EcoBot. Ready to help you reduce your carbon footprint and crush eco challenges today?",
-  carbon: "Your carbon footprint consists of transport (30%), food (25%), energy (20%), shopping (15%) and digital use (10%). Start by tackling your biggest category! 🎯",
-  tip: "Here are today's top eco tips:\n1. 🚴 Cycle or walk for trips under 5km\n2. 🥦 Try one plant-based meal today\n3. 💡 Unplug devices when not in use\n4. 🛁 Cut your shower by 2 minutes\n5. ♻️ Refuse single-use plastics",
-  challenge: "Today's featured challenge: **Zero Plastic Day** 🎯\nAvoid all single-use plastics for 24 hours. Earn 100 XP and help reduce ocean plastic pollution. Can you do it?",
-  streak: "Your current streak is amazing! 🔥 Maintaining daily challenges can reduce your footprint by up to 15% per month. Keep it up!",
-  climate: "Climate change is caused by greenhouse gas emissions, primarily CO₂ from burning fossil fuels. But together, millions of small actions create massive change. You're part of the solution! 🌍",
-  reward: "You can earn: 🪙 Eco Coins, 🏆 Digital Badges, 📜 Certificates, and even NFT-style impact cards! Visit the Rewards section to see what you can unlock.",
-  food: "Going plant-based just 3 days a week saves ~0.5 tons of CO₂ per year — equivalent to driving 1,200km less! 🌱",
-  transport: "Switching from a car to cycling/walking for short trips is the #1 individual action for reducing carbon. Electric vehicles are 3x cleaner than petrol cars! ⚡",
-};
-
-function getResponse(message: string): string {
-  const lower = message.toLowerCase();
-  if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) return ecoResponses.hello;
-  if (lower.includes("carbon") || lower.includes("footprint")) return ecoResponses.carbon;
-  if (lower.includes("tip") || lower.includes("advice")) return ecoResponses.tip;
-  if (lower.includes("challenge")) return ecoResponses.challenge;
-  if (lower.includes("streak")) return ecoResponses.streak;
-  if (lower.includes("climate") || lower.includes("global warming")) return ecoResponses.climate;
-  if (lower.includes("reward") || lower.includes("coin") || lower.includes("badge")) return ecoResponses.reward;
-  if (lower.includes("food") || lower.includes("plant") || lower.includes("meat")) return ecoResponses.food;
-  if (lower.includes("transport") || lower.includes("car") || lower.includes("drive")) return ecoResponses.transport;
-  return ecoResponses.default;
-}
 
 export default function AIAssistant() {
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "ai", text: "Hi! I'm EcoBot 🌱 Your AI sustainability guide. How can I help you reduce your carbon footprint today?" }
+    { role: "ai", text: "Hi! I'm EcoBot 🌱 Your sustainability guide. How can I help you reduce your carbon footprint today?" }
   ]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [rateWarning, setRateWarning] = useState(false);
+  const sentTimestamps = useRef<number[]>([]);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,9 +29,17 @@ export default function AIAssistant() {
   }, [messages]);
 
   const sendMessage = async (customText?: string) => {
-    const textToSend = customText || input;
-    if (!textToSend.trim()) return;
-    const userMsg = textToSend.trim();
+    const userMsg = sanitizeMessage(customText ?? input);
+    if (!userMsg) return;
+
+    const { allowed, timestamps } = registerMessage(sentTimestamps.current);
+    if (!allowed) {
+      setRateWarning(true);
+      return;
+    }
+    setRateWarning(false);
+    sentTimestamps.current = timestamps;
+
     if (!customText) {
       setInput("");
     }
@@ -71,7 +60,7 @@ export default function AIAssistant() {
         transition={{ delay: 2, type: "spring" }}
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00ff88] to-[#00cc6a] flex items-center justify-center shadow-[0_0_30px_rgba(0,255,136,0.5)] hover:shadow-[0_0_50px_rgba(0,255,136,0.8)] transition-all hover:scale-110"
-        aria-label="Open AI Assistant"
+        aria-label="Open EcoBot Assistant"
         style={{ display: open ? "none" : "flex" }}
       >
         <Bot className="w-6 h-6 text-[#050a05]" />
@@ -97,18 +86,18 @@ export default function AIAssistant() {
                   <Bot className="w-5 h-5 text-[#050a05]" />
                 </div>
                 <div>
-                  <div className="font-semibold text-sm">EcoBot AI</div>
+                  <div className="font-semibold text-sm">EcoBot Assistant</div>
                   <div className="flex items-center gap-1 text-xs text-[#00ff88]">
                     <span className="w-1.5 h-1.5 bg-[#00ff88] rounded-full animate-pulse" />
-                    Online • Eco Expert
+                    Online • Eco Guide
                   </div>
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setMinimized(!minimized)} className="text-[#557755] hover:text-[#e8ffe8] transition-colors">
+                <button onClick={() => setMinimized(!minimized)} aria-label={minimized ? "Expand chat" : "Minimize chat"} className="text-[#557755] hover:text-[#e8ffe8] transition-colors">
                   <Minimize2 className="w-4 h-4" />
                 </button>
-                <button onClick={() => setOpen(false)} className="text-[#557755] hover:text-[#e8ffe8] transition-colors">
+                <button onClick={() => setOpen(false)} aria-label="Close chat" className="text-[#557755] hover:text-[#e8ffe8] transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -117,7 +106,7 @@ export default function AIAssistant() {
             {!minimized && (
               <>
                 {/* Messages */}
-                <div className="h-72 overflow-y-auto p-4 space-y-3">
+                <div className="h-72 overflow-y-auto p-4 space-y-3" role="log" aria-live="polite" aria-label="Chat conversation">
                   {messages.map((msg, i) => (
                     <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                       {msg.role === "ai" && (
@@ -137,20 +126,27 @@ export default function AIAssistant() {
                     </div>
                   ))}
                   {typing && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" role="status" aria-label="EcoBot is typing">
                       <div className="w-7 h-7 rounded-lg bg-[rgba(0,255,136,0.15)] flex items-center justify-center">
                         <Leaf className="w-3.5 h-3.5 text-[#00ff88]" />
                       </div>
-                      <div className="flex gap-1 bg-[rgba(255,255,255,0.05)] rounded-2xl px-4 py-3">
+                      <div className="flex gap-1 bg-[rgba(255,255,255,0.05)] rounded-2xl px-4 py-3" aria-hidden="true">
                         {[0, 1, 2].map(i => (
                           <motion.div key={i} animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
                             className="w-1.5 h-1.5 bg-[#00ff88] rounded-full" />
                         ))}
                       </div>
+                      <span className="sr-only">EcoBot is typing…</span>
                     </div>
                   )}
                   <div ref={messagesEnd} />
                 </div>
+
+                {rateWarning && (
+                  <div className="px-4 pb-1 text-xs text-[#f97316]" role="alert">
+                    Whoa, slow down! Please wait a moment before sending more messages.
+                  </div>
+                )}
 
                 {/* Quick replies */}
                 <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
@@ -171,8 +167,9 @@ export default function AIAssistant() {
                     placeholder="Ask EcoBot anything..."
                     className="eco-input text-xs py-2.5"
                     aria-label="Chat input"
+                    maxLength={MAX_MESSAGE_LENGTH}
                   />
-                  <button onClick={() => sendMessage()}
+                  <button onClick={() => sendMessage()} aria-label="Send message"
                     className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00ff88] to-[#00cc6a] flex items-center justify-center flex-shrink-0 hover:shadow-[0_0_15px_rgba(0,255,136,0.5)] transition-all">
                     <Send className="w-4 h-4 text-[#050a05]" />
                   </button>

@@ -1,26 +1,35 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { memo, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, Zap, Globe, TrendingDown, Users, ChevronDown } from "lucide-react";
 
+const PARTICLES = [
+  { x: 10, y: 20, size: 3, delay: 0 }, { x: 85, y: 15, size: 5, delay: 1 },
+  { x: 20, y: 70, size: 4, delay: 2 }, { x: 90, y: 60, size: 3, delay: 0.5 },
+  { x: 50, y: 85, size: 6, delay: 1.5 }, { x: 70, y: 30, size: 3, delay: 3 },
+  { x: 5, y: 50, size: 4, delay: 2.5 }, { x: 95, y: 80, size: 3, delay: 0.8 },
+  { x: 40, y: 10, size: 5, delay: 1.2 }, { x: 60, y: 95, size: 4, delay: 2.2 },
+];
+
 // Floating particle component
-function Particle({ delay = 0, size = 4, x = 50, y = 50 }: { delay?: number; size?: number; x?: number; y?: number }) {
+const Particle = memo(function Particle({ delay = 0, size = 4, x = 50, y = 50 }: { delay?: number; size?: number; x?: number; y?: number }) {
   return (
     <motion.div
+      aria-hidden="true"
       className="absolute rounded-full bg-[#00ff88] opacity-30 pointer-events-none"
       style={{ width: size, height: size, left: `${x}%`, top: `${y}%` }}
       animate={{ y: [-20, 20, -20], opacity: [0.2, 0.5, 0.2] }}
       transition={{ duration: 6 + delay, repeat: Infinity, ease: "easeInOut", delay }}
     />
   );
-}
+});
 
 // Animated Earth Globe
-function EarthGlobe() {
+const EarthGlobe = memo(function EarthGlobe() {
   return (
-    <div className="relative w-64 h-64 md:w-96 md:h-96 mx-auto">
+    <div className="relative w-64 h-64 md:w-96 md:h-96 mx-auto" role="img" aria-label="Animated globe of Earth with orbiting eco-impact statistics">
       {/* Glow */}
       <div className="absolute inset-0 rounded-full bg-[#00ff88] opacity-10 blur-3xl scale-110" />
       {/* Outer ring */}
@@ -91,7 +100,7 @@ function EarthGlobe() {
       </motion.div>
     </div>
   );
-}
+});
 
 // Stats counter
 function CounterStat({ value, label, color = "#00ff88" }: { value: string; label: string; color?: string }) {
@@ -116,14 +125,6 @@ export default function HeroSection() {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
-  const particles = [
-    { x: 10, y: 20, size: 3, delay: 0 }, { x: 85, y: 15, size: 5, delay: 1 },
-    { x: 20, y: 70, size: 4, delay: 2 }, { x: 90, y: 60, size: 3, delay: 0.5 },
-    { x: 50, y: 85, size: 6, delay: 1.5 }, { x: 70, y: 30, size: 3, delay: 3 },
-    { x: 5, y: 50, size: 4, delay: 2.5 }, { x: 95, y: 80, size: 3, delay: 0.8 },
-    { x: 40, y: 10, size: 5, delay: 1.2 }, { x: 60, y: 95, size: 4, delay: 2.2 },
-  ];
-
   return (
     <section ref={ref} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-eco-mesh">
       {/* Grid pattern */}
@@ -133,7 +134,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-hero-gradient" />
 
       {/* Particles */}
-      {particles.map((p, i) => <Particle key={i} {...p} />)}
+      {PARTICLES.map((p) => <Particle key={`${p.x}-${p.y}`} {...p} />)}
 
       <motion.div style={{ y, opacity }} className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center pt-28 pb-16">
@@ -180,16 +181,12 @@ export default function HeroSection() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              <Link href="/challenges">
-                <button id="cta-join-challenge" className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center">
-                  <Zap className="w-4 h-4" /> Join Challenge
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+              <Link id="cta-join-challenge" href="/challenges" className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center">
+                <Zap className="w-4 h-4" aria-hidden="true" /> Join Challenge
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Link>
-              <Link href="/#calculator">
-                <button id="cta-calculate-carbon" className="btn-secondary flex items-center gap-2 w-full sm:w-auto justify-center">
-                  <Globe className="w-4 h-4" /> Calculate Carbon
-                </button>
+              <Link id="cta-calculate-carbon" href="/#calculator" className="btn-secondary flex items-center gap-2 w-full sm:w-auto justify-center">
+                <Globe className="w-4 h-4" aria-hidden="true" /> Calculate Carbon
               </Link>
             </motion.div>
 

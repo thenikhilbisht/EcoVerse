@@ -68,10 +68,8 @@ export default function ChallengesSection() {
               Complete eco challenges, earn XP, and unlock badges. Every action counts.
             </p>
           </div>
-          <Link href="/challenges">
-            <button className="btn-secondary flex items-center gap-2 whitespace-nowrap">
-              View All Challenges <ArrowRight className="w-4 h-4" />
-            </button>
+          <Link href="/challenges" className="btn-secondary flex items-center gap-2 whitespace-nowrap">
+            View All Challenges <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </motion.div>
 
@@ -118,7 +116,14 @@ export default function ChallengesSection() {
                   <span className="text-[#557755]">Community progress</span>
                   <span style={{ color: challenge.color }} className="font-semibold">{challenge.progress}%</span>
                 </div>
-                <div className="progress-bar h-1.5">
+                <div
+                  className="progress-bar h-1.5"
+                  role="progressbar"
+                  aria-label={`${challenge.title} community progress`}
+                  aria-valuenow={challenge.progress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
                   <div className="progress-fill" style={{ width: `${challenge.progress}%`,
                     background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}99)` }} />
                 </div>
@@ -155,10 +160,8 @@ export default function ChallengesSection() {
             </h3>
             <p className="text-[#557755] text-sm">Complete a challenge every day to maintain your streak and earn bonus XP.</p>
           </div>
-          <Link href="/challenges">
-            <button className="btn-primary flex items-center gap-2 whitespace-nowrap">
-              <Star className="w-4 h-4" /> Start Today
-            </button>
+          <Link href="/challenges" className="btn-primary flex items-center gap-2 whitespace-nowrap">
+            <Star className="w-4 h-4" aria-hidden="true" /> Start Today
           </Link>
         </motion.div>
       </div>

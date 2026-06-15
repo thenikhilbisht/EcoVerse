@@ -35,6 +35,7 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -42,6 +43,15 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [menuOpen]);
 
   return (
     <>
@@ -86,11 +96,20 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              <div className="relative group">
-                <button className="nav-link px-3 py-2 rounded-lg text-sm font-medium text-[#88aa88] hover:text-[#e8ffe8] hover:bg-[rgba(255,255,255,0.04)] flex items-center gap-1">
-                  More <ChevronDown className="w-3.5 h-3.5" />
+              <div
+                className="relative group"
+                onMouseEnter={() => setMoreOpen(true)}
+                onMouseLeave={() => setMoreOpen(false)}
+              >
+                <button
+                  className="nav-link px-3 py-2 rounded-lg text-sm font-medium text-[#88aa88] hover:text-[#e8ffe8] hover:bg-[rgba(255,255,255,0.04)] flex items-center gap-1"
+                  aria-haspopup="true"
+                  aria-expanded={moreOpen}
+                  onClick={() => setMoreOpen((v) => !v)}
+                >
+                  More <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
-                <div className="absolute top-full right-0 mt-2 w-48 glass-card rounded-xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 py-1">
+                <div className={`absolute top-full right-0 mt-2 w-48 glass-card rounded-xl overflow-hidden transition-all duration-200 py-1 group-hover:opacity-100 group-hover:visible ${moreOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}>
                   {navLinks.slice(6).map((link) => (
                     <Link
                       key={link.href}
@@ -183,7 +202,14 @@ export default function Navbar() {
                   <div className="text-xs text-[#88aa88]">Level 12 • 2,450 XP</div>
                 </div>
               </div>
-              <div className="progress-bar h-2">
+              <div
+                className="progress-bar h-2"
+                role="progressbar"
+                aria-label="Level progress"
+                aria-valuenow={72}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
                 <div className="progress-fill" style={{ width: "72%" }} />
               </div>
               <div className="text-xs text-[#557755] mt-1.5">550 XP to next level</div>
@@ -218,11 +244,11 @@ export default function Navbar() {
 
             {/* Bottom Actions */}
             <div className="px-6 pb-8 pt-4 border-t border-[rgba(0,255,136,0.1)] flex gap-3">
-              <Link href="/dashboard" className="flex-1" onClick={() => setMenuOpen(false)}>
-                <button className="btn-primary w-full text-center">Open Dashboard</button>
+              <Link href="/dashboard" className="btn-primary flex-1 text-center" onClick={() => setMenuOpen(false)}>
+                Open Dashboard
               </Link>
-              <Link href="/challenges" onClick={() => setMenuOpen(false)}>
-                <button className="btn-secondary px-4">Join Challenge</button>
+              <Link href="/challenges" className="btn-secondary px-4" onClick={() => setMenuOpen(false)}>
+                Join Challenge
               </Link>
             </div>
           </motion.div>
