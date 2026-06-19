@@ -44,15 +44,11 @@ export default function NotFound() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/">
-            <button className="btn-primary flex items-center gap-2 justify-center">
-              <ArrowLeft className="w-4 h-4" /> Back to Home
-            </button>
+          <Link href="/" className="btn-primary flex items-center gap-2 justify-center">
+            <ArrowLeft className="w-4 h-4" /> Back to Home
           </Link>
-          <Link href="/challenges">
-            <button className="btn-secondary flex items-center gap-2 justify-center">
-              <Globe className="w-4 h-4" /> View Challenges
-            </button>
+          <Link href="/challenges" className="btn-secondary flex items-center gap-2 justify-center">
+            <Globe className="w-4 h-4" /> View Challenges
           </Link>
         </div>
 

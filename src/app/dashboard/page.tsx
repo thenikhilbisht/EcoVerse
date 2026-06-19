@@ -1,21 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { TreePine, Droplets, Zap, TrendingDown, Flame, Star, Target, Calendar, Bot, ArrowUp, ArrowDown } from "lucide-react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AIAssistant from "@/components/AIAssistant";
+import { getHistory, type HistoryEntry } from "@/lib/historyStore";
 
-const weeklyData = [
+// Fallback demo data
+const DEMO_WEEKLY = [
   { day: "Mon", co2: 12.4, target: 10 }, { day: "Tue", co2: 9.8, target: 10 },
   { day: "Wed", co2: 8.2, target: 10 }, { day: "Thu", co2: 11.1, target: 10 },
   { day: "Fri", co2: 7.6, target: 10 }, { day: "Sat", co2: 6.9, target: 10 },
   { day: "Sun", co2: 8.4, target: 10 },
 ];
 
-const monthlyData = [
+const DEMO_MONTHLY = [
   { month: "Jan", saved: 45 }, { month: "Feb", saved: 62 }, { month: "Mar", saved: 58 },
   { month: "Apr", saved: 78 }, { month: "May", saved: 91 }, { month: "Jun", saved: 85 },
 ];
@@ -40,7 +43,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
         <div className="font-semibold mb-1">{label}</div>
         {payload.map((p) => (
           <div key={p.name} className="flex gap-2">
-            <span className="text-[#557755]">{p.name}:</span>
+            <span className="text-[#6b9a6b]">{p.name}:</span>
             <span className="text-[#00ff88] font-mono">{p.value}</span>
           </div>
         ))}
@@ -51,8 +54,69 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 };
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<"week" | "month">("week");
+  const [activeTab, setActiveTab] = useState<"7D" | "30D" | "90D">("7D");
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [isDemo, setIsDemo] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    // eslint-disable-next-line
+    setMounted(true);
+    const data = getHistory();
+    if (data.length === 0) {
+      setIsDemo(true);
+    } else {
+      setHistory(data);
+    }
+  }, []);
+
+  // Process history data for charts based on activeTab
+  let chartData: any[] = [];
+  if (!mounted || isDemo) {
+    chartData = activeTab === "7D" ? DEMO_WEEKLY : DEMO_MONTHLY;
+  } else {
+    // Process real history
+    // Filter by days
+    const daysToLookBack = activeTab === "7D" ? 7 : activeTab === "30D" ? 30 : 90;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - daysToLookBack);
+    const cutoffISO = cutoff.toISOString();
+    
+    const filtered = history.filter(h => h.timestamp >= cutoffISO);
+    
+    // Group by day (YYYY-MM-DD)
+    const grouped = new Map<string, number[]>();
+    filtered.forEach(entry => {
+      const day = entry.timestamp.split("T")[0];
+      if (!grouped.has(day)) grouped.set(day, []);
+      grouped.get(day)!.push(entry.result.monthlyKg); // Show monthly rate recorded that day
+    });
+    
+    // Average per day and format
+    const sortedDays = Array.from(grouped.keys()).sort();
+    chartData = sortedDays.map(dayStr => {
+      const vals = grouped.get(dayStr)!;
+      const avg = vals.reduce((a,b) => a + b, 0) / vals.length;
+      // Short format for label e.g. "Oct 12"
+      const date = new Date(dayStr);
+      const label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      return { 
+        day: label, 
+        co2: Math.round(avg),
+        target: Math.round(avg * 0.8) // Fake target line just for visual
+      };
+    });
+
+    if (chartData.length === 0) {
+      // Fallback if no data in period
+      chartData = [{ day: "No Data", co2: 0, target: 0 }];
+    }
+  }
+
+  // Calculate current impact stats based on latest calculation if available
+  const latestCalc = history.length > 0 ? history[history.length - 1].result : null;
+  const currentMonthlyKg = latestCalc ? Math.round(latestCalc.monthlyKg) : 284;
+  
   return (
     <main className="min-h-screen bg-eco-black">
       <Navbar />
@@ -63,7 +127,7 @@ export default function DashboardPage() {
             <div>
               <span className="badge-green mb-2 inline-block">📊 My Dashboard</span>
               <h1 className="section-title">Welcome back, <span className="text-gradient">Eco Warrior</span> 👋</h1>
-              <p className="text-[#557755] mt-1">Level 12 • 2,450 XP • 22-day streak 🔥</p>
+              <p className="text-[#88aa88] mt-1">Level 12 • 2,450 XP • 22-day streak 🔥</p>
             </div>
             <div className="flex gap-3">
               <div className="glass-card rounded-xl px-4 py-2 flex items-center gap-2">
@@ -81,7 +145,7 @@ export default function DashboardPage() {
         {/* Impact Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[
-            { icon: TrendingDown, label: "CO₂ Saved", value: "284 kg", change: "+12%", up: true, color: "#00ff88" },
+            { icon: TrendingDown, label: "Your CO₂ / mo", value: `${currentMonthlyKg} kg`, change: isDemo ? "+12%" : "Live", up: isDemo, color: "#00ff88" },
             { icon: TreePine, label: "Trees Equivalent", value: "14 trees", change: "+3", up: true, color: "#00d4ff" },
             { icon: Zap, label: "Energy Saved", value: "342 kWh", change: "+8%", up: true, color: "#ffd700" },
             { icon: Droplets, label: "Water Saved", value: "4,200 L", change: "+5%", up: true, color: "#60a5fa" },
@@ -99,7 +163,7 @@ export default function DashboardPage() {
                 </span>
               </div>
               <div className="text-xl font-display font-bold" style={{ color: stat.color }}>{stat.value}</div>
-              <div className="text-[#557755] text-xs mt-1">{stat.label}</div>
+              <div className="text-[#88aa88] text-xs mt-1">{stat.label}</div>
             </motion.div>
           ))}
         </div>
@@ -109,11 +173,16 @@ export default function DashboardPage() {
           {/* Main chart */}
           <div className="lg:col-span-2 glass-card rounded-2xl p-5">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="font-display font-semibold">Carbon Emissions</h2>
+              <h2 className="font-display font-semibold flex items-center gap-2">
+                Carbon History
+                {isDemo && mounted && (
+                  <span className="badge-blue text-[10px] ml-2 px-1.5 py-0.5 border border-[#00d4ff] bg-[#00d4ff]/10">DEMO DATA</span>
+                )}
+              </h2>
               <div className="flex gap-2">
-                {(["week", "month"] as const).map(t => (
+                {(["7D", "30D", "90D"] as const).map(t => (
                   <button key={t} onClick={() => setActiveTab(t)}
-                    className={`text-xs px-3 py-1.5 rounded-lg transition-all capitalize ${activeTab === t ? "tab-active" : "tab-inactive"}`}>
+                    className={`text-xs px-3 py-1.5 rounded-lg transition-all ${activeTab === t ? "tab-active" : "tab-inactive"}`}>
                     {t}
                   </button>
                 ))}
@@ -121,30 +190,26 @@ export default function DashboardPage() {
             </div>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
-                {activeTab === "week" ? (
-                  <AreaChart data={weeklyData}>
-                    <defs>
-                      <linearGradient id="co2Grad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00ff88" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#00ff88" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="day" tick={{ fill: "#557755", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#557755", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="co2" name="CO₂ kg" stroke="#00ff88" fill="url(#co2Grad)" strokeWidth={2} />
-                    <Area type="monotone" dataKey="target" name="Target" stroke="#00d4ff" fill="none" strokeDasharray="4 4" strokeWidth={1.5} />
-                  </AreaChart>
-                ) : (
-                  <BarChart data={monthlyData}>
-                    <XAxis dataKey="month" tick={{ fill: "#557755", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#557755", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="saved" name="CO₂ Saved kg" fill="#00ff88" radius={[4, 4, 0, 0]} opacity={0.8} />
-                  </BarChart>
-                )}
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="co2Grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#00ff88" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#00ff88" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="day" tick={{ fill: "#6b9a6b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#6b9a6b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area type="monotone" dataKey="co2" name="CO₂ kg/mo" stroke="#00ff88" fill="url(#co2Grad)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="target" name="Target" stroke="#00d4ff" fill="none" strokeDasharray="4 4" strokeWidth={1.5} />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
+            {isDemo && mounted && (
+              <p className="text-xs text-[#6b9a6b] text-center mt-2">
+                No real calculations saved yet. Use the <Link href="/#calculator" className="text-[#00ff88] hover:underline">calculator</Link> to start tracking your actual footprint!
+              </p>
+            )}
           </div>
 
           {/* AI Insight */}
@@ -172,7 +237,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Streak Calendar + Achievements */}
+        {/* Streak Calendar + Achievements (DEMO DATA for Gamification) */}
         <div className="grid lg:grid-cols-2 gap-5 mb-6">
           {/* Streak Calendar */}
           <div className="glass-card rounded-2xl p-5">
@@ -193,7 +258,7 @@ export default function DashboardPage() {
                   }`} />
               ))}
             </div>
-            <div className="flex items-center gap-4 mt-4 text-xs text-[#557755]">
+            <div className="flex items-center gap-4 mt-4 text-xs text-[#6b9a6b]">
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-[#00ff88] rounded-sm" /> Completed</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-[#ffd700] rounded-sm" /> Partial</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-[rgba(255,255,255,0.1)] rounded-sm" /> Missed</span>
@@ -206,7 +271,7 @@ export default function DashboardPage() {
               <h2 className="font-display font-semibold flex items-center gap-2">
                 <Star className="w-4 h-4 text-[#ffd700]" /> Recent Achievements
               </h2>
-              <button className="text-xs text-[#557755] hover:text-[#00ff88] transition-colors">View all →</button>
+              <button className="text-xs text-[#6b9a6b] hover:text-[#00ff88] transition-colors">View all →</button>
             </div>
             <div className="space-y-3">
               {recentAchievements.map((a, i) => (
@@ -215,11 +280,11 @@ export default function DashboardPage() {
                   <div className="text-2xl">{a.emoji}</div>
                   <div className="flex-1">
                     <div className="text-sm font-medium">{a.title}</div>
-                    <div className="text-[#557755] text-xs">{a.desc}</div>
+                    <div className="text-[#6b9a6b] text-xs">{a.desc}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-[#ffd700] text-xs font-semibold">+{a.xp} XP</div>
-                    <div className="text-[#557755] text-xs">{a.date}</div>
+                    <div className="text-[#6b9a6b] text-xs">{a.date}</div>
                   </div>
                 </motion.div>
               ))}
@@ -233,7 +298,7 @@ export default function DashboardPage() {
             <h2 className="font-display font-semibold flex items-center gap-2">
               <Target className="w-4 h-4 text-[#00ff88]" /> Active Challenges
             </h2>
-            <button className="text-xs text-[#557755] hover:text-[#00ff88] transition-colors">Join more →</button>
+            <button className="text-xs text-[#6b9a6b] hover:text-[#00ff88] transition-colors">Join more →</button>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
@@ -246,7 +311,7 @@ export default function DashboardPage() {
                   <span className="text-xl">{c.emoji}</span>
                   <div>
                     <div className="text-sm font-medium">{c.title}</div>
-                    <div className="text-[#557755] text-xs">{c.day}</div>
+                    <div className="text-[#6b9a6b] text-xs">{c.day}</div>
                   </div>
                 </div>
                 <div className="progress-bar h-2 mb-1.5">

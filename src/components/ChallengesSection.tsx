@@ -49,8 +49,8 @@ const difficultyColors: Record<string, string> = {
 
 export default function ChallengesSection() {
   return (
-    <section className="py-20 relative">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_30%,rgba(0,255,136,0.06)_0%,transparent_60%)]" />
+    <section className="py-20 relative" aria-labelledby="challenges-heading">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_30%,rgba(0,255,136,0.06)_0%,transparent_60%)]" aria-hidden="true" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
         <motion.div
@@ -61,49 +61,64 @@ export default function ChallengesSection() {
         >
           <div>
             <span className="badge-green mb-4 inline-block">⚡ Eco Challenges</span>
-            <h2 className="section-title">
+            <h2 id="challenges-heading" className="section-title">
               Join Daily <span className="text-gradient">Missions</span>
             </h2>
             <p className="section-subtitle mt-3">
               Complete eco challenges, earn XP, and unlock badges. Every action counts.
             </p>
           </div>
-          <Link href="/challenges">
-            <button className="btn-secondary flex items-center gap-2 whitespace-nowrap">
-              View All Challenges <ArrowRight className="w-4 h-4" />
-            </button>
+          <Link
+            href="/challenges"
+            className="btn-secondary flex items-center gap-2 whitespace-nowrap"
+          >
+            View All Challenges <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </motion.div>
 
         {/* Challenge Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 list-none p-0 m-0">
           {challenges.map((challenge, i) => (
-            <motion.div
+            <motion.li
               key={challenge.id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="challenge-card glass-card rounded-2xl p-5 cursor-pointer group"
+              className="challenge-card glass-card rounded-2xl p-5 group"
             >
               {/* Top */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="text-3xl">{challenge.emoji}</div>
+                  <div className="text-3xl" role="img" aria-label={challenge.title}>
+                    {challenge.emoji}
+                  </div>
                   <div>
                     <div className="font-semibold text-sm">{challenge.title}</div>
-                    <span className="text-xs px-2 py-0.5 rounded-full"
-                      style={{ background: `${challenge.color}20`, color: challenge.color, border: `1px solid ${challenge.color}30` }}>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full"
+                      style={{
+                        background: `${challenge.color}20`,
+                        color: challenge.color,
+                        border: `1px solid ${challenge.color}30`,
+                      }}
+                    >
                       {challenge.category}
                     </span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <div className="flex items-center gap-1 text-[#ffd700] text-xs font-semibold">
-                    <Flame className="w-3.5 h-3.5" /> {challenge.xp} XP
+                    <Flame className="w-3.5 h-3.5" aria-hidden="true" />
+                    {challenge.xp} XP
                   </div>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-                    style={{ color: difficultyColors[challenge.difficulty], background: `${difficultyColors[challenge.difficulty]}15` }}>
+                  <span
+                    className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                    style={{
+                      color: difficultyColors[challenge.difficulty],
+                      background: `${difficultyColors[challenge.difficulty]}15`,
+                    }}
+                  >
                     {challenge.difficulty}
                   </span>
                 </div>
@@ -116,31 +131,55 @@ export default function ChallengesSection() {
               <div className="mb-4">
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-[#557755]">Community progress</span>
-                  <span style={{ color: challenge.color }} className="font-semibold">{challenge.progress}%</span>
+                  <span style={{ color: challenge.color }} className="font-semibold">
+                    {challenge.progress}%
+                  </span>
                 </div>
-                <div className="progress-bar h-1.5">
-                  <div className="progress-fill" style={{ width: `${challenge.progress}%`,
-                    background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}99)` }} />
+                <div
+                  className="progress-bar h-1.5"
+                  role="progressbar"
+                  aria-valuenow={challenge.progress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`${challenge.title} community progress: ${challenge.progress}%`}
+                >
+                  <div
+                    className="progress-fill"
+                    style={{
+                      width: `${challenge.progress}%`,
+                      background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}99)`,
+                    }}
+                  />
                 </div>
               </div>
 
               {/* Bottom */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 text-xs text-[#557755]">
-                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{challenge.duration}</span>
-                  <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{challenge.participants.toLocaleString()}</span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+                    {challenge.duration}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5" aria-hidden="true" />
+                    {challenge.participants.toLocaleString()} joined
+                  </span>
                 </div>
                 <button
                   className="text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all group-hover:shadow-[0_0_15px_rgba(0,255,136,0.3)]"
-                  style={{ background: `${challenge.color}20`, color: challenge.color, border: `1px solid ${challenge.color}30` }}
-                  aria-label={`Join ${challenge.title}`}
+                  style={{
+                    background: `${challenge.color}20`,
+                    color: challenge.color,
+                    border: `1px solid ${challenge.color}30`,
+                  }}
+                  aria-label={`Join challenge: ${challenge.title}`}
                 >
-                  <CheckCircle className="w-3.5 h-3.5" /> Join
+                  <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" /> Join
                 </button>
               </div>
-            </motion.div>
+            </motion.li>
           ))}
-        </div>
+        </ul>
 
         {/* CTA Banner */}
         <motion.div
@@ -153,12 +192,15 @@ export default function ChallengesSection() {
             <h3 className="font-display text-xl font-bold mb-1">
               🔥 Daily Streak: <span className="text-gradient">Join the streak challenge</span>
             </h3>
-            <p className="text-[#557755] text-sm">Complete a challenge every day to maintain your streak and earn bonus XP.</p>
+            <p className="text-[#557755] text-sm">
+              Complete a challenge every day to maintain your streak and earn bonus XP.
+            </p>
           </div>
-          <Link href="/challenges">
-            <button className="btn-primary flex items-center gap-2 whitespace-nowrap">
-              <Star className="w-4 h-4" /> Start Today
-            </button>
+          <Link
+            href="/challenges"
+            className="btn-primary flex items-center gap-2 whitespace-nowrap"
+          >
+            <Star className="w-4 h-4" aria-hidden="true" /> Start Today
           </Link>
         </motion.div>
       </div>

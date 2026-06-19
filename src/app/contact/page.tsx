@@ -45,15 +45,40 @@ const offices = [
   { city: "Singapore", country: "🇸🇬", address: "71 Science Park Dr, Singapore 118253", timezone: "SGT (UTC+8)" },
 ];
 
+function sanitizeText(value: string) {
+  return value.replace(/[<>]/g, "").replace(/\s+/g, " ").trim();
+}
+
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "", type: "general" });
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [errors, setErrors] = useState({ name: "", email: "", message: "" });
+
+  const handleInputChange = (field: keyof typeof form, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.message) return;
+
+    const cleanedName = sanitizeText(form.name);
+    const cleanedEmail = sanitizeText(form.email).toLowerCase();
+    const cleanedMessage = sanitizeText(form.message);
+
+    const nextErrors = {
+      name: cleanedName ? "" : "Please enter your name.",
+      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanedEmail) ? "" : "Please enter a valid email address.",
+      message: cleanedMessage ? "" : "Please include a brief message.",
+    };
+
+    setErrors(nextErrors);
+
+    if (nextErrors.name || nextErrors.email || nextErrors.message) return;
+
     setSubmitted(true);
+    setForm({ name: "", email: "", subject: "", message: "", type: "general" });
   };
 
   return (
@@ -151,24 +176,30 @@ export default function ContactPage() {
                       <label className="text-xs text-[#557755] font-medium mb-1.5 block">Full Name *</label>
                       <input
                         value={form.name}
-                        onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
                         placeholder="John Smith"
                         className="eco-input"
                         required
                         aria-label="Full name"
+                        aria-invalid={Boolean(errors.name)}
+                        aria-describedby="name-error"
                       />
+                      {errors.name ? <p id="name-error" className="text-xs text-[#f97316] mt-1">{errors.name}</p> : null}
                     </div>
                     <div>
                       <label className="text-xs text-[#557755] font-medium mb-1.5 block">Email Address *</label>
                       <input
                         type="email"
                         value={form.email}
-                        onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
                         placeholder="john@example.com"
                         className="eco-input"
                         required
                         aria-label="Email address"
+                        aria-invalid={Boolean(errors.email)}
+                        aria-describedby="email-error"
                       />
+                      {errors.email ? <p id="email-error" className="text-xs text-[#f97316] mt-1">{errors.email}</p> : null}
                     </div>
                   </div>
 
@@ -187,13 +218,17 @@ export default function ContactPage() {
                     <label className="text-xs text-[#557755] font-medium mb-1.5 block">Message *</label>
                     <textarea
                       value={form.message}
-                      onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+                      onChange={(e) => handleInputChange("message", e.target.value)}
                       placeholder="Tell us more about your inquiry, idea, or question..."
                       rows={5}
                       className="eco-input resize-none"
                       required
                       aria-label="Message"
+                      aria-invalid={Boolean(errors.message)}
+                      aria-describedby="message-error"
+                      maxLength={1000}
                     />
+                    {errors.message ? <p id="message-error" className="text-xs text-[#f97316] mt-1">{errors.message}</p> : null}
                   </div>
 
                   <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
